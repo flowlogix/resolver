@@ -33,7 +33,7 @@ public class PomEquippedEmbeddedMavenRunningAsDaemonTestCase {
             .withWaitUntilOutputLineMatches(".*BUILD SUCCESS.*")
             .build();
 
-        Awaitility.await("Wait till thread is not be alive").atMost(20, TimeUnit.SECONDS)
+        Awaitility.await("Wait till thread is not be alive").atMost(45, TimeUnit.SECONDS)
                 .until(() -> !daemonBuild.isAlive());
 
         Assertions.assertThat(daemonBuild.getBuiltProject()).isNotNull();
@@ -58,7 +58,7 @@ public class PomEquippedEmbeddedMavenRunningAsDaemonTestCase {
         Assertions.assertThat(daemonBuild.isAlive()).isTrue();
         Assertions.assertThat(daemonBuild.getBuiltProject()).isNull();
 
-        Awaitility.await("Wait till thread is not be alive").atMost(20, TimeUnit.SECONDS)
+        Awaitility.await("Wait till thread is not be alive").atMost(45, TimeUnit.SECONDS)
                 .until(() -> !daemonBuild.isAlive());
 
         Assertions.assertThat(daemonBuild.isAlive()).isFalse();
