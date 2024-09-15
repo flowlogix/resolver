@@ -221,23 +221,39 @@ public class MavenWorkingSessionImpl extends ConfigurableMavenWorkingSessionImpl
     private Path resolveProjectLocal(String groupId, String artifactId, String version,
                                      Optional<String> classifier, Optional<String> extension,
                                      Set<MavenDependency> additionalDependencies) {
-        Path findProjectLocalRepository = findProjectLocalRepository();
-        if (findProjectLocalRepository == null) {
+        Path projectLocalRepository = findProjectLocalRepository();
+        if (projectLocalRepository == null) {
             return null;
         }
 
         Predicate<String> isNotEmpty = s -> !s.isEmpty();
-        Path directory = findProjectLocalRepository.resolve(groupId).resolve(artifactId).resolve(version);
-        String versionedArtifact = artifactId + "-" + version;
-        File consumerPom = directory.resolve(versionedArtifact + "-consumer.pom").toFile();
-        if (consumerPom.exists()) {
-            additionalDependencies.addAll(loadPomFromFile(consumerPom).getParsedPomFile().getDependencies());
-        }
+        processAdditionalDependencies(projectLocalRepository, groupId, artifactId, version,
+                additionalDependencies);
 
-        return findProjectLocalRepository.resolve(groupId).resolve(artifactId).resolve(version)
-                .resolve(versionedArtifact
+        return projectLocalRepository.resolve(groupId).resolve(artifactId).resolve(version)
+                .resolve(toVersionedArtifact(artifactId, version)
                         + classifier.filter(isNotEmpty).map(c -> "-" + c).orElse("")
                         + "." + extension.filter(isNotEmpty).orElse("jar"));
+    }
+
+    private static String toVersionedArtifact(String artifactId, String version) {
+        return artifactId + "-" + version;
+    }
+
+    private void processAdditionalDependencies(Path projectLocalRepository, String groupId,
+                                               String artifactId, String version,
+                                               Set<MavenDependency> additionalDependencies) {
+        Path directory = projectLocalRepository.resolve(groupId).resolve(artifactId).resolve(version);
+        File consumerPom = directory.resolve(toVersionedArtifact(artifactId, version) + "-consumer.pom").toFile();
+        if (consumerPom.exists()) {
+            Set<MavenDependency> transitiveDependencies = loadPomFromFile(consumerPom).getParsedPomFile().getDependencies();
+            transitiveDependencies.removeAll(additionalDependencies);
+            if (!transitiveDependencies.isEmpty()) {
+                additionalDependencies.addAll(transitiveDependencies);
+                transitiveDependencies.forEach(dependency -> processAdditionalDependencies(projectLocalRepository,
+                        dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion(), additionalDependencies));
+            }
+        }
     }
 
     private List<MavenDependency> filterFromLocal(final List<MavenDependency> depsForResolution,
