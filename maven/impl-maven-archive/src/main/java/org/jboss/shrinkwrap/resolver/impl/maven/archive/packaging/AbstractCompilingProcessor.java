@@ -80,8 +80,10 @@ public abstract class AbstractCompilingProcessor<ARCHIVETYPE extends Archive<ARC
         Validate.notNull(inputDirectory, "Directory with sources to be compiled must not be null");
         Validate.notNull(outputDirectory, "Target directory for compiled sources must not be null");
 
-        if (compiler == null && !skipCompilation) {
-            log.warning("No compiler found, skipping compilation");
+        if (compiler == null) {
+            if (!skipCompilation) {
+                log.warning("No compiler found, skipping compilation");
+            }
             return this;
         }
 
