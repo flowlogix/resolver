@@ -15,7 +15,7 @@
     <!-- Artifact Information -->
     <groupId>org.jboss.shrinkwrap.resolver</groupId>
     <artifactId>shrinkwrap-resolver-parent</artifactId>
-    <version>3.3.2-SNAPSHOT</version>
+    <version>3.3.2-lp-sep16</version>
     <packaging>pom</packaging>
     <name>ShrinkWrap Resolver Aggregator</name>
     <description>ShrinkWrap Resolver Aggregator</description>
